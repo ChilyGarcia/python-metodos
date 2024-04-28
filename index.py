@@ -1,53 +1,71 @@
 import tkinter as tk
-from tkinter import messagebox
-from sympy import symbols, Function, Eq, diff, simplify, collect
+from tkinter import ttk
+import sympy as sp
 
-class EcuacionesDiferencialesApp:
-    def __init__(self, root):
-        self.root = root
-        self.root.title("Identificación de Ecuaciones Diferenciales")
-        
-        self.label_ecuacion = tk.Label(root, text="Ingrese la ecuación diferencial:")
-        self.label_ecuacion.grid(row=0, column=0, padx=10, pady=5, sticky="w")
-        
-        self.ecuacion_entry = tk.Entry(root, width=50)
-        self.ecuacion_entry.grid(row=0, column=1, padx=10, pady=5, sticky="w")
-        
-        self.identificar_button = tk.Button(root, text="Identificar", command=self.identificar_ecuacion)
-        self.identificar_button.grid(row=1, column=1, padx=10, pady=5, sticky="e")
-    
-    def identificar_ecuacion(self):
-        ecuacion_str = self.ecuacion_entry.get()
-        
-        if not ecuacion_str:
-            messagebox.showerror("Error", "Ingrese una ecuación.")
-            return
-        
-        x = symbols('x')
-        y = Function('y')(x)
-        
-        try:
-            ecuacion = Eq(simplify(eval(ecuacion_str)), 0)  # Convertir la entrada en una ecuación
-        except:
-            messagebox.showerror("Error", "La ecuación ingresada no es válida.")
-            return
-        
-        # Extraer términos de la ecuación
-        terminos = ecuacion.lhs.as_ordered_terms()
-        
-        # Colectar términos en y y sus derivadas
-        y_terms = collect(terminos, y)
-        
-        # Si no hay términos que contengan y o sus derivadas, la ecuación es homogénea
-        es_homogenea = y_terms == 0
-        
-        if es_homogenea:
-            messagebox.showinfo("Resultado", "La ecuación es homogénea.")
-        else:
-            messagebox.showinfo("Resultado", "La ecuación es heterogénea.")
-        
+def es_homogenea(ecuacion):
+    # Creamos los símbolos necesarios
+    x, y = sp.symbols('x y')
 
-if __name__ == "__main__":
-    root = tk.Tk()
-    app = EcuacionesDiferencialesApp(root)
-    root.mainloop()
+    # Expandimos y simplificamos la ecuación
+    ecuacion_expandida = ecuacion.expand()
+
+    # Obtenemos los términos de la ecuación
+    terminos = ecuacion_expandida.as_ordered_terms()
+
+    # Verificamos si todos los términos tienen el mismo grado
+    try:
+        # Obtenemos el grado del primer término
+        grado = sp.Poly(terminos[0], x, y).total_degree()
+
+        for termino in terminos[1:]:
+            if sp.Poly(termino, x, y).total_degree() != grado:
+                return False
+    except sp.PolynomialError:
+        # Si hay un error al obtener el grado, la ecuación no es homogénea
+        return False
+
+    return True
+
+def verificar_ecuacion():
+    ecuacion_str = entrada_ecuacion.get()
+    try:
+        ecuacion = sp.sympify(ecuacion_str)
+        resultado = "homogénea" if es_homogenea(ecuacion) else "heterogénea"
+        etiqueta_resultado.config(text=f"La ecuación es {resultado}.", foreground="green")
+    except sp.SympifyError:
+        etiqueta_resultado.config(text="Entrada inválida. Asegúrate de ingresar una ecuación válida.", foreground="red")
+
+# Crear la ventana principal
+ventana = tk.Tk()
+ventana.title("Ecuaciones diferenciales")
+ventana.maxsize(500, 200)  # Ancho máximo: 500px, Alto máximo: 200px
+
+# Establecer el icono de la ventana
+ventana.iconbitmap("./iconmetods.ico")  # Reemplaza "ruta_del_archivo.ico" con la ruta de tu archivo de icono
+
+# Establecer color de fondo
+color_pastel = "#F0E8D9"  # Color pastel clarito
+ventana.configure(bg=color_pastel)
+
+# Etiqueta de instrucciones
+ttk.Label(ventana, text="Ingresa la ecuación diferencial en términos de x e y, por ejemplo 'y' + x*y':", font=('Berlin Sans FB Demi', 10, 'bold'), anchor="center", justify="center", background=color_pastel).pack(padx=20, pady=10)
+
+# Entrada para la ecuación
+entrada_ecuacion = ttk.Entry(ventana, width=40, font=('Berlin Sans FB Demi', 10, 'bold'))
+entrada_ecuacion.pack(fill=tk.X, padx=20, pady=5)
+
+# Botón para verificar
+boton_verificar = ttk.Button(ventana, text="Verificar", command=verificar_ecuacion, style='Bold.TButton')
+boton_verificar.pack(fill=tk.X, padx=20, pady=5)
+
+# Etiqueta para mostrar el resultado
+etiqueta_resultado = ttk.Label(ventana, text="", font=('Berlin Sans FB Demi', 10, 'bold'), anchor="center", justify="center", background=color_pastel)
+etiqueta_resultado.pack(padx=20, pady=10)
+
+# Personalizar estilos de la entrada y el botón
+s = ttk.Style()
+s.configure('TEntry', foreground="gray")
+s.configure('Bold.TButton', foreground="black", font=('Berlin Sans FB Demi', 10, 'bold'))
+
+# Iniciar el bucle de eventos
+ventana.mainloop()
