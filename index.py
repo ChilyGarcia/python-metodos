@@ -37,6 +37,10 @@ def verificar_ecuacion():
 
 def resolver_ecuacion():
     metodo = metodo_seleccionado.get()
+    for widget in ventana.pack_slaves():
+        if isinstance(widget, FigureCanvasTkAgg):
+            widget.get_tk_widget().pack_forget()
+            widget.get_tk_widget().destroy()
     if metodo == "Euler":
         resolver_euler()
     elif metodo == "Runge-Kutta":
@@ -50,9 +54,9 @@ def resolver_euler():
     ecuacion = sp.sympify(ecuacion_str)
     f = sp.lambdify((x, y), ecuacion, 'numpy')
 
-    x0, y0 = 1, 1  # Valores iniciales (evitamos x0 = 0 para evitar división por cero)
-    h = 0.1  # Paso
-    n = 100  # Número de iteraciones
+    x0, y0 = 1, 1
+    h = 0.1
+    n = 100
 
     xs = [x0]
     ys = [y0]
@@ -83,9 +87,9 @@ def resolver_runge_kutta():
     ecuacion = sp.sympify(ecuacion_str)
     f = sp.lambdify((x, y), ecuacion, 'numpy')
 
-    x0, y0 = 1, 1  # Valores iniciales (evitamos x0 = 0 para evitar división por cero)
-    h = 0.1  # Paso
-    n = 100  # Número de iteraciones
+    x0, y0 = 1, 1
+    h = 0.1
+    n = 100
 
     xs = [x0]
     ys = [y0]
@@ -120,15 +124,14 @@ def resolver_taylor():
     ecuacion = sp.sympify(ecuacion_str)
     f = sp.lambdify((x, y), ecuacion, 'numpy')
 
-    x0, y0 = 1, 1  # Valores iniciales (evitamos x0 = 0 para evitar división por cero)
-    h = 0.1  # Paso
-    n = 100  # Número de iteraciones
+    x0, y0 = 1, 1
+    h = 0.1
+    n = 100
 
     xs = [x0]
     ys = [y0]
 
     for i in range(n):
-        # Calcular la aproximación de Taylor de orden 4
         y_siguiente = y0 + h * f(x0, y0) + (h**2/2) * sp.diff(f(x, y), x).subs({x: x0, y: y0}) + (h**3/6) * sp.diff(f(x, y), x, 2).subs({x: x0, y: y0}) + (h**4/24) * sp.diff(f(x, y), x, 3).subs({x: x0, y: y0})
         x0 += h
         y0 = y_siguiente
@@ -154,7 +157,6 @@ ventana = tk.Tk()
 ventana.title("Ecuaciones diferenciales")
 ventana.maxsize(1000, 600)
 
-ventana.iconbitmap("./iconmetods.ico")
 
 color_pastel = "#d8f8e1"
 ventana.configure(bg=color_pastel)
